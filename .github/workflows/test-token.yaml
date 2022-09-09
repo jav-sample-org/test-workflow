@@ -25,5 +25,5 @@ jobs:
         echo "Token : $JWT"
         echo "::set-output name=REPO_CLAIM::$JWT"
     - name: Check for Sub Claim Match
-      if: ${{ 'repo:jav-sample-org/test-workflow:ref:refs/heads/main' != 'repo:jav-sample-org/test-workflow:ref:refs/heads/main' }}
+      if: ${{ 'repo:jav-sample-org/test-workflow:ref:refs/heads/main' != github.event.inputs.subjectClaim }}
       run: echo "::error::Subject Claim mismatch found" && exit 1
