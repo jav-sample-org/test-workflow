@@ -42,8 +42,11 @@ jobs:
           else
             echo "Failed to Opt Out from Subject Claim Customisation"
           fi
+      - name: Git clone the repository
+        uses: actions/checkout@v3
       - name: Call Validate Workflow
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          gh workflow list
           gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }}
