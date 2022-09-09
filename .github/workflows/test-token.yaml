@@ -23,11 +23,7 @@ jobs:
         IDTOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=github" -H "Accept: application/json; api-version=2.0" -H "Content-Type: application/json"  | jq -r '.value')
         JWT=$(jq -R 'split(".") | .[1] | @base64d | fromjson' <<< "$IDTOKEN")
         SUB_CLAIM=$(jq -r '.sub' <<< "$JWT")
-        echo "Token : $JWT"
-        echo "::set-output name=REPO_CLAIM::$JWT"
-        echo $SUB_CLAIM
-        n=${#SUB_CLAIM}
-        echo $n
+        echo "::set-output name=REPO_CLAIM::$SUB_CLAIM"
     - name: Check for Sub Claim Match
-      if: ${{ 'repo:jav-sample-org/test-workflow:ref:refs/heads/main' != github.event.inputs.subjectClaim }}
+      if: ${{ steps.generateClaim.outputs.REPO_CLAIM != github.event.inputs.subjectClaim }}
       run: echo "::error::Subject Claim mismatch found" && exit 1
