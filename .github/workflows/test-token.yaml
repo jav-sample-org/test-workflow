@@ -27,3 +27,5 @@ jobs:
     - name: Check for Sub Claim Match
       if: ${{ steps.generateClaim.outputs.REPO_CLAIM != github.event.inputs.subjectClaim }}
       run: echo "::error::Subject Claim mismatch found" && exit 1
+    - name: Print Success
+      run: echo "Subject Claim Matches successfully"
