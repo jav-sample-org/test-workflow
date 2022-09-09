@@ -7,9 +7,12 @@ on:
     inputs:
       subjectClaim:
         description: 'Subject Claim Value'
+        required: true
+        type: string
+      optStatus:
+        description: 'Opt-in/Opt-out Value'
         required: false
         type: string
-
 permissions:
   id-token: write
 
@@ -28,4 +31,6 @@ jobs:
       if: ${{ steps.generateClaim.outputs.REPO_CLAIM != github.event.inputs.subjectClaim }}
       run: echo "::error::Subject Claim mismatch found" && exit 1
     - name: Print Success
-      run: echo "Subject Claim Matches successfully"
+      env:
+        optValue: ${{ github.event.inputs.optStatus }}
+      run: echo "Subject Claim Matches successfully for ${{ env.optValue }}"
