@@ -1,0 +1,47 @@
+# Workflow depicts the Opt-In/Opt-Out status Changes
+# For Subject Claim on Repo Level
+name: Test Opt Status
+
+on: [workflow_dispatch]
+
+permissions:
+  id-token: write
+  contents: write  
+
+env:
+  ORG_NAME: "jav-sample-org"
+  REPO_NAME: "test-workflow"
+  GET_URL: "https://api.github.com/repos/jav-sample-org/test-workflow/actions/oidc/customization/sub"
+  SUB_CLAIM: "repo:jav-sample-org/test-workflow:ref:refs/heads/main"
+
+jobs:
+  updateSubClaim:
+    runs-on: ubuntu-latest
+    steps:
+
+      #######################################################################################################################################################
+
+      # Set the Default Opt-out Flag for OIDC subject claim customization for Repo
+      - name: Opt-Out from Subject Customisation
+        uses: octokit/request-action@v2.x
+        with:
+          route: PUT /repos/{owner}/{repo}/actions/oidc/customization/sub
+          owner: ${{ env.ORG_NAME }}
+          repo: ${{ env.REPO_NAME }}
+          use_default: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      # Gets the Default Opt-Out Status    
+      - name: Print Opt-Out Status
+        run: |
+          OPT_RESPONSE=$(curl -s -L -X GET "${{env.GET_URL}}" -H "Authorization: bearer ${{secrets.PERSONAL_ACCESS_TOKEN}}" | jq -r '.use_default')
+          echo Opt-Out Status : $OPT_RESPONSE
+          if [ "$OPT_RESPONSE" = true ]; then
+            echo "Successfully Opted Out from Subject Claim customisation"
+          else
+            echo "Failed to Opt Out from Subject Claim Customisation"
+          fi
+      - name: Call Validate Workflow
+        run: |
+          gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }}
