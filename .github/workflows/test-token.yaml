@@ -26,8 +26,8 @@ jobs:
         echo "::set-output name=REPO_CLAIM::$JWT"
     - name: Print Sub Claim
       run: |
-        echo "Subject Claim of Repo - ${{ steps.generateClaim.outputs.REPO_CLAIM }}"
-        echo "Subject claim as Input - ${{ github.event.inputs.subjectClaim }}"
+        echo "Subject Claim of Repo - .${{ steps.generateClaim.outputs.REPO_CLAIM }}."
+        echo "Subject claim as Input - .${{ github.event.inputs.subjectClaim }}."
         A1="Apple"
         A2="Apple"
         echo "Check - $((A1==A2))"
