@@ -31,9 +31,7 @@ jobs:
         A1="Apple"
         A2="Apple"
         echo "Check - $((A1==A2))"
-        echo "Both are equal - ${{ steps.generateClaim.outputs.REPO_CLAIM==github.event.inputs.subjectClaim }}"
+        echo "Both are equal - ${{ (steps.generateClaim.outputs.REPO_CLAIM==github.event.inputs.subjectClaim) }}"
     - name: Check for Sub Claim Match
-      env:
-        INPUT_CLAIM: ${{ github.event.inputs.subjectClaim }}
-      if: ${{ steps.generateClaim.outputs.REPO_CLAIM != env.INPUT_CLAIM }}
+      if: ${{ steps.generateClaim.outputs.REPO_CLAIM != github.event.inputs.subjectClaim }}
       run: echo "::error::Subject Claim mismatch found" && exit 1
