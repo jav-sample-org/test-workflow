@@ -1,0 +1,31 @@
+# Workflow generates ID Token and validates Subject claim Values
+name: Generate and Validate ID Token
+
+on:
+  # Can be triggered manually from UI or through API call
+  workflow_dispatch:
+    inputs:
+      subjectClaim:
+        description: 'Subject Claim Value'
+        required: false
+        type: string
+
+permissions:
+  id-token: write
+
+jobs:
+  generate-validate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Generate ID Token When OptOut
+      run: |
+        IDTOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=github" -H "Accept: application/json; api-version=2.0" -H "Content-Type: application/json"  | jq -r '.value')
+        JWT=$(jq -R 'split(".") | .[1] | @base64d | fromjson' <<< "${1}")
+        jwtd() {
+          if [[ -x $(command -v jq) ]]; then
+              echo "Token : "
+              jq -R 'split(".") | .[0],.[1] | @base64d | fromjson' <<< "${1}"
+              echo "Signature: $(echo "${1}" | awk -F'.' '{print $3}')"
+          fi
+        }
+        jwtd $IDTOKEN
