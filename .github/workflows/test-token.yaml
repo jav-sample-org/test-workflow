@@ -25,7 +25,9 @@ jobs:
         echo "Token : $JWT"
         echo "::set-output name=REPO_CLAIM::$JWT"
     - name: Print Sub Claim
-      run: echo "Subject Claim of Repo - ${{ steps.generateClaim.outputs.REPO_CLAIM }}"
+      run: |
+        echo "Subject Claim of Repo - ${{ steps.generateClaim.outputs.REPO_CLAIM }}"
+        echo "Subject claim as Input - ${{ github.event.inputs.subjectClaim }}"
     - name: Check for Sub Claim Match
       if: ${{ steps.generateClaim.outputs.REPO_CLAIM != github.event.inputs.subjectClaim }}
       run: echo "::error::Subject Claim mismatch found" && exit 1
