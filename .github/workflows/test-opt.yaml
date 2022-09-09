@@ -43,5 +43,7 @@ jobs:
             echo "Failed to Opt Out from Subject Claim Customisation"
           fi
       - name: Call Validate Workflow
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }}
