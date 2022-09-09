@@ -12,8 +12,8 @@ env:
   ORG_NAME: "jav-sample-org"
   REPO_NAME: "test-workflow"
   GET_URL: "https://api.github.com/repos/jav-sample-org/test-workflow/actions/oidc/customization/sub"
-  #SUB_CLAIM: "repo:jav-sample-org/test-workflow:ref:refs/heads/main"
-  SUB_CLAIM: "repo"
+  SUB_CLAIM: "repo:jav-sample-org/test-workflow:ref:refs/heads/main"
+  OPT_STATUS: "Opt-out"
 
 jobs:
   updateSubClaim:
@@ -49,5 +49,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow list
-          gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }}
+          gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }} -f optStatus=${{ env.OPT_STATUS }}
