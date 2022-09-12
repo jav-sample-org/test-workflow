@@ -43,11 +43,5 @@ jobs:
         uses: actions/checkout@v3
         
       - name: Test AWS Connection for Case6
-        env:
-          # Hard-Coded Custom Subject Claim - Containing Repo Owner / Visibility 
-          AWS_ROLE: 'arn:aws:iam::077244816842:role/aws_oidc_jav_test'
-          AWS_REGION: 'us-east-1'
-          BUCKET_NAME: 'oidc-test-nirvana'
-          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
           gh workflow run test-aws.yaml
