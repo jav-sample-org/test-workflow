@@ -38,6 +38,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
+      # Checkout Repo for accessing Workflows
+      - name: Git clone the repository
+        uses: actions/checkout@v3
+        
       - name: Test AWS Connection for Case6
         env:
           # Hard-Coded Custom Subject Claim - Containing Repo Owner / Visibility 
