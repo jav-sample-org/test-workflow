@@ -60,7 +60,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow run oidc_token_generate_validate.yaml -f subjectClaim=${{ env.DEFAULT_SUB_CLAIM }} -f optStatus=${{ env.OPT_OUT_STATUS }}
+          gh workflow run test-token.yaml -f subjectClaim=${{ env.DEFAULT_SUB_CLAIM }} -f optStatus=${{ env.OPT_OUT_STATUS }}
 
       #######################################################################################################################################################
 
@@ -108,6 +108,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow run oidc_token_generate_validate.yaml -f subjectClaim=${{ env.CUSTOM_SUB_CLAIM }} -f optStatus=${{ env.OPT_IN_STATUS }}
+          gh workflow run test-token.yaml -f subjectClaim=${{ env.CUSTOM_SUB_CLAIM }} -f optStatus=${{ env.OPT_IN_STATUS }}
       
       #######################################################################################################################################################    
