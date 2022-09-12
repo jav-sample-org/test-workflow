@@ -1,0 +1,63 @@
+# Workflow containing Steps to 
+# Connect to AWS using OIDC
+name: AWS OIDC Connect - Test
+
+on: 
+  workflow_dispatch:
+    inputs:
+      awsRole:
+        description: 'Defines the Role to be used for connecting'
+        type: string
+        required: false
+        default: 'arn:aws:iam::077244816842:role/aws_oidc_jav_test'
+      awsRegion:
+        description: 'Defines the Region to be used for accessing AWS Resources'
+        type: string
+        required: false
+        default: 'us-east-1'
+      bucketName:
+        description: 'Defines the Bucket name for S3'
+        type: string
+        required: false
+        default: 'oidc-test-nirvana'      
+
+permissions:
+  id-token: write
+
+jobs:
+
+  ###########################################################################################################################################################################
+
+    # Configure OIDC in AWS using below Details:
+    # Refer https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services for creating AWS IAM Config
+    ###### Identity Provider - token.actions.githubusercontent.com
+    ###### Audience - sts.amazonaws.com
+    ###### Subject Claim -  repository_owner:bbq-beets:repository_visibility:private 
+
+  ###########################################################################################################################################################################
+
+  testAwsOidc:
+    runs-on: ubuntu-latest
+    steps:
+
+      # Pre-Requisite Step - Can be done manually calling API 
+      # Or using 1.2_oidc_subject_claim_template_update.yaml 
+      # Update Subject Claim to use Repo Details - {"include_claim_keys": ['repository_owner', 'repository_visibility']}
+      # Translates to - Any Private Repo under the Owner can access.
+
+      # Uses Action to connect to AWS using Role
+      # ID Token are generated within Action
+      - name: Connect to AWS
+        env:
+          AWS_ROLE: ${{ github.event.inputs.awsRole }}
+          AWS_REGION: ${{ github.event.inputs.awsRegion }}
+        uses:  aws-actions/configure-aws-credentials@master
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # Uses aws command to test AWS Connection
+      - name: Test AWS Connection
+        env:
+          BUCKET_NAME: ${{ github.event.inputs.bucketName }}
+        run: aws s3 ls s3://${{ env.BUCKET_NAME }} --human-readable --summarize
