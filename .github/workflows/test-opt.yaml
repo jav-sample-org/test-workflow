@@ -11,9 +11,12 @@ permissions:
 env:
   ORG_NAME: "jav-sample-org"
   REPO_NAME: "test-workflow"
+  ROUTE: "PUT /orgs/{org}/actions/oidc/customization/sub"
   GET_URL: "https://api.github.com/repos/jav-sample-org/test-workflow/actions/oidc/customization/sub"
-  SUB_CLAIM: "repo:jav-sample-org/test-workflow:ref:refs/heads/main"
-  OPT_STATUS: "Opt-out"
+  DEFAULT_SUB_CLAIM: "repo:bbq-beets/oidc-lab:ref:refs/heads/oidc_customise"
+  CUSTOM_SUB_CLAIM: "repository_owner:bbq-beets:repository_visibility:private"
+  OPT_OUT_STATUS: "Opt-Out"
+  OPT_IN_STATUS: "Opt-In"
 
 jobs:
   updateSubClaim:
@@ -21,6 +24,9 @@ jobs:
     steps:
 
       #######################################################################################################################################################
+
+      # Checks for the Subject Claim Template for the Default Values
+      # Validate the Claim by Triggerring oidc_token_generate_validate.yaml
 
       # Set the Default Opt-out Flag for OIDC subject claim customization for Repo
       - name: Opt-Out from Subject Customisation
@@ -42,11 +48,66 @@ jobs:
             echo "Successfully Opted Out from Subject Claim customisation"
           else
             echo "Failed to Opt Out from Subject Claim Customisation"
-          fi
+          fi  
+
+      # Checkout Repo for accessing Workflows
       - name: Git clone the repository
         uses: actions/checkout@v3
+      
+      # Sent Dispatch Event to the Workflow
+      # To validate the Claim Value
       - name: Call Validate Workflow
         env:
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }} -f optStatus=${{ env.OPT_STATUS }}
+          gh workflow run oidc_token_generate_validate.yaml -f subjectClaim=${{ env.DEFAULT_SUB_CLAIM }} -f optStatus=${{ env.OPT_OUT_STATUS }}
+
+      #######################################################################################################################################################
+
+      # Checks for the Subject Claim Template for the Custom Value Set
+      # Sets the Custom Template through API
+      # Opt-In for the Custom Template usage through API
+      # Validate the Claim by Triggerring oidc_token_generate_validate.yaml
+
+      # Set the Custom Sub Claim Template
+      - name: Update Subject Template for Customisation
+        uses: octokit/request-action@v2.x
+        with:
+          route: ${{ env.ROUTE }}
+          org: ${{ env.ORG_NAME }}
+          include_claim_keys: "['repository_owner', 'repository_visibility']"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      # Set the Opt-In Flag for OIDC subject claim customization for Repo
+      - name: Opt-In for Subject Claim Customisation
+        uses: octokit/request-action@v2.x
+        id: set_custom_opt_status
+        with:
+          route: PUT /repos/{owner}/{repo}/actions/oidc/customization/sub
+          owner: ${{ env.ORG_NAME }}
+          repo: ${{ env.REPO_NAME }}
+          use_default: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      # Gets the Opt-In Status    
+      - name: Print Opt-In Status
+        run: |
+          OPT_RESPONSE=$(curl -s -L -X GET "${{env.GET_URL}}" -H "Authorization: bearer ${{secrets.PERSONAL_ACCESS_TOKEN}}" | jq -r '.use_default')
+          echo Opt-Out Status : $OPT_RESPONSE
+          if [ "$OPT_RESPONSE" = false ]; then
+            echo "Successfully Opted In for Subject Claim customisation"
+          else
+            echo "Failed to Opt In for Subject Claim Customisation"
+          fi 
+      
+      # Sent Dispatch Event to the Workflow
+      # To validate the Claim Value
+      - name: Call Validate Workflow
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          gh workflow run oidc_token_generate_validate.yaml -f subjectClaim=${{ env.CUSTOM_SUB_CLAIM }} -f optStatus=${{ env.OPT_IN_STATUS }}
+      
+      #######################################################################################################################################################    
