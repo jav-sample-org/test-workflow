@@ -1,6 +1,13 @@
 name: Test Token
 
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+
+env:
+  ORG_NAME: "jav-sample-org"
+  REPO_NAME: "test-workflow"
+  ROUTE: "PUT /orgs/{org}/actions/oidc/customization/sub"
+  GET_URL: "https://api.github.com/orgs/jav-sample-org/actions/oidc/customization/sub"
 
 permissions:
   id-token: write
@@ -10,14 +17,33 @@ jobs:
   updateSubClaim:
     runs-on: ubuntu-latest
     steps:
-     - name: Generate ID Token When OptOut
-       run: |
-          IDTOKEN=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=github" -H "Accept: application/json; api-version=2.0" -H "Content-Type: application/json"  | jq -r '.value')
-          jwtd() {
-            if [[ -x $(command -v jq) ]]; then
-                echo "Token : "
-                jq -R 'split(".") | .[1] | @base64d | fromjson' <<< "${1}"
-               echo "Signature: $(echo "${1}" | awk -F'.' '{print $3}')"
-            fi
-          }
-          jwtd $IDTOKEN  
+      - name: OIDC Sub Claim to Access Private Repo under Owner
+        uses: octokit/request-action@v2.x
+        with:
+          route: ${{ env.ROUTE }}
+          org: ${{ env.ORG_NAME }}
+          include_claim_keys: "['repository_owner', 'repository_visibility']"
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      # Set the Opt-In Flag for OIDC subject claim customization for Repo
+      - name: Opt-In for Subject Claim Customisation
+        uses: octokit/request-action@v2.x
+        id: set_custom_opt_status
+        with:
+          route: PUT /repos/{owner}/{repo}/actions/oidc/customization/sub
+          owner: ${{ env.ORG_NAME }}
+          repo: ${{ env.REPO_NAME }}
+          use_default: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      - name: Test AWS Connection for Case6
+        env:
+          # Hard-Coded Custom Subject Claim - Containing Repo Owner / Visibility 
+          AWS_ROLE: 'arn:aws:iam::077244816842:role/aws_oidc_jav_test'
+          AWS_REGION: 'us-east-1'
+          BUCKET_NAME: 'oidc-test-nirvana'
+          GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        run: |
+          gh workflow run oidc_token_generate_validate.yaml -f awsRole=${{ env.AWS_ROLE }} -f awsRegion=${{ env.AWS_REGION }} -f bucketName=${{ env.BUCKET_NAME }}
