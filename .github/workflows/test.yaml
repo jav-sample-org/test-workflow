@@ -50,4 +50,4 @@ jobs:
           BUCKET_NAME: 'oidc-test-nirvana'
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow run oidc_token_generate_validate.yaml -f awsRole=${{ env.AWS_ROLE }} -f awsRegion=${{ env.AWS_REGION }} -f bucketName=${{ env.BUCKET_NAME }}
+          gh workflow run test-aws.yaml -f awsRole=${{ env.AWS_ROLE }} -f awsRegion=${{ env.AWS_REGION }} -f bucketName=${{ env.BUCKET_NAME }}
