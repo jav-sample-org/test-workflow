@@ -13,8 +13,6 @@ env:
   REPO_NAME: "test-workflow"
   ROUTE: "PUT /orgs/{org}/actions/oidc/customization/sub"
   GET_URL: "https://api.github.com/repos/jav-sample-org/test-workflow/actions/oidc/customization/sub"
-  DEFAULT_SUB_CLAIM: "repo:jav-sample-org/test-workflow:ref:refs/heads/main"
-  CUSTOM_SUB_CLAIM: "repository_owner:jav-sample-org:repository_visibility:private"
   OPT_OUT_STATUS: "Opt-Out"
   OPT_IN_STATUS: "Opt-In"
 
@@ -58,9 +56,10 @@ jobs:
       # To validate the Claim Value
       - name: Call Validate Workflow
         env:
+          SUB_CLAIM: "repo:jav-sample-org/test-workflow:ref:refs/heads/main"
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow run test-token.yaml -f subjectClaim=${{ env.DEFAULT_SUB_CLAIM }} -f optStatus=${{ env.OPT_OUT_STATUS }}
+          gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }} -f optStatus=${{ env.OPT_OUT_STATUS }}
 
       #######################################################################################################################################################
 
@@ -106,8 +105,9 @@ jobs:
       # To validate the Claim Value
       - name: Call Validate Workflow
         env:
+          SUB_CLAIM: "repository_owner:jav-sample-org:repository_visibility:private"
           GH_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         run: |
-          gh workflow run test-token.yaml -f subjectClaim=${{ env.CUSTOM_SUB_CLAIM }} -f optStatus=${{ env.OPT_IN_STATUS }}
+          gh workflow run test-token.yaml -f subjectClaim=${{ env.SUB_CLAIM }} -f optStatus=${{ env.OPT_IN_STATUS }}
       
       #######################################################################################################################################################    
