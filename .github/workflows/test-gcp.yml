@@ -1,0 +1,36 @@
+# Workflow depicts the Opt-In/Opt-Out status Changes
+# For Subject Claim on Repo Level
+name: GCP OIDC Connect
+
+on: [workflow_dispatch]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  Get_OIDC_ID_Token:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: 'actions/checkout@v3' # Needed to use the exported credentials
+      
+      # Authenticate to GCP using ID Token
+      - id: auth
+        name: Authenticate to GCP
+        env:
+          TEST_PROVIDER: 'projects/857468810385/locations/global/workloadIdentityPools/git-oidc-test/providers/test1'
+          MY_PROVIDER: 'projects/857468810385/locations/global/workloadIdentityPools/my-pool/providers/my-provider'
+        uses: google-github-actions/auth@v0.3.1
+        with:
+          create_credentials_file: 'true'
+          workload_identity_provider: ${{ env.TEST_PROVIDER }}
+          service_account: 'test-account@actions-oidc-test-362510.iam.gserviceaccount.com'
+
+      # Auth and Execute GCLOUD CLI Commands
+      - id: gcloud
+        name: GCloud Command Run
+        env:
+          CLOUDSDK_CORE_PROJECT: 'actions-oidc-test-362510'
+        run: |-
+          gcloud auth login --brief --cred-file="${{ steps.auth.outputs.credentials_file_path }}"
+          gcloud services list
