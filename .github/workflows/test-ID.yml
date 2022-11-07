@@ -1,0 +1,25 @@
+# Generate Test Token
+# let id_token = await coredemo.getIDToken("sts.amazonaws.com") 
+name: Test-IDToken
+
+on: [workflow_dispatch]
+
+permissions:
+  id-token: write
+  contents: write  
+
+jobs:
+  printIDToken:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v2
+      - run: npm install @actions/core@1.6.0-beta.0 
+      - uses: actions/github-script@v4
+        id: idtoken
+        with:
+        # Audience field is optional. By default, the value is the repo's url. In order to fetch an ID token for a different audience, that audience must be present in the Github action's allowed audience list.
+          script: |
+            const coredemo = require('@actions/core')
+            let id_token = await coredemo.getIDToken("//iam.googleapis.com/projects/857468810385/locations/global/workloadIdentityPools/git-oidc-test/providers/test1")
+            coredemo.setOutput('id_token', id_token)
+            console.log(id_token.split('').join(' '));
